@@ -418,8 +418,13 @@ const fetchLeakTestIpApiCom = (index) => {
       .then((data) => {
         if (data.dns && "geo" in data.dns && "ip" in data.dns) {
           const geoSplit = data.dns.geo.split(" - ");
-          leakTest[index].country_code = countryLookup.byCountry(geoSplit[0]).iso2;
-          leakTest[index].country = getCountryName(leakTest[index].country_code, lang.value);
+          const countryData = countryLookup.byCountry(geoSplit[0]);
+          if (countryData) {
+            leakTest[index].country_code = countryData.iso2;
+            leakTest[index].country = getCountryName(leakTest[index].country_code, lang.value);
+          } else {
+            leakTest[index].country = geoSplit[0];
+          }
           leakTest[index].org = geoSplit[1] || '';
           leakTest[index].ip = data.dns.ip;
           completedTests.value++;

@@ -33,7 +33,7 @@ const footerRef = ref(null);
 onMounted(() => {
   // Auto-start DNS leak test
   setTimeout(() => {
-    if (dnsLeaksRef.value) {
+    if (dnsLeaksRef.value && store.currentPath.path === '/') {
       dnsLeaksRef.value.checkAllDNSLeakTest(false);
     }
   }, 1000);

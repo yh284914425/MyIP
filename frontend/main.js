@@ -73,6 +73,10 @@ app.directive('tooltip', {
         new Tooltip(el, options)
     },
     beforeUnmount(el) {
+        const isMobile = store.isMobile
+        if (isMobile) {
+            return
+        }
         const tooltipInstance = Tooltip.getInstance(el)
         if (tooltipInstance) {
             tooltipInstance.dispose()
@@ -85,7 +89,7 @@ store.checkFirebaseEnv();
 
 // 获取后端配置和用户偏好
 Promise.all([
-    store.isFireBaseSet ? store.initializeAuthListener() : Promise.resolve(),
+    store.isFireBaseSet ? store.initializeAuthListener() : null,
     store.loadPreferences(), // 加载用户偏好设置
     store.fetchConfigs()      // 获取后端配置
 ]).then(() => {

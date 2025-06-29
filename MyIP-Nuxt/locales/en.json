@@ -1,0 +1,49 @@
+{
+  "nav": {
+    "DNSLeakTest": "DNS Leak Test"
+  },
+  "dnsleaktest": {
+    "Title": "DNS Leak Detection",
+    "HeroTitle": "Is Your VPN Leaking?",
+    "HeroSubtitle": "Find out in 10 seconds. Protect your real IP address and location from being exposed.",
+    "TestButton": "Check for DNS Leaks",
+    "TestingButton": "Testing...",
+    "TestAgainButton": "Test Again",
+    "LeakDetectedButton": "DNS Leak Detected - Test Again",
+    "NoLeaksButton": "No Leaks Found - Test Again",
+    "TestingStatus": "Testing DNS servers...",
+    "ProgressStatus": "Testing",
+    "LeakDetected": "⚠️ DNS Leak Detected!",
+    "NoLeaksFound": "✅ No DNS Leaks Found",
+    "LeakMessage": "Your DNS queries are being exposed. Your real IP and location may be visible. We recommend using a trusted VPN service.",
+    "SecureMessage": "Congratulations! Your DNS queries are properly secured. No leaks detected.",
+    "DNSServer": "DNS Server",
+    "IPAddress": "IP Address",
+    "ISP": "ISP",
+    "Location": "Location",
+    "StatusSecure": "Secure",
+    "StatusLeak": "Leak",
+    "StatusError": "Error",
+    "StatusTesting": "Testing",
+    "HowItWorks": {
+      "Step1Title": "1. Detect",
+      "Step1Desc": "We test your DNS queries against multiple servers",
+      "Step2Title": "2. Analyze", 
+      "Step2Desc": "Compare results to identify potential leaks",
+      "Step3Title": "3. Secure",
+      "Step3Desc": "Get recommendations to fix any issues"
+    }
+  },
+  "footer": {
+    "Copyright": "© 2025 SecureDNSCheck.com",
+    "About": "About",
+    "Privacy": "Privacy Policy",
+    "Contact": "Contact",
+    "Built": "Built for privacy-conscious users worldwide"
+  },
+  "page": {
+    "Title": "SecureDNSCheck - Is Your VPN Leaking DNS?",
+    "Description": "Free DNS leak test tool. Check if your VPN is exposing your real IP address and location in 10 seconds. Protect your online privacy.",
+    "Keywords": "DNS leak test, VPN leak test, privacy test, IP leak detection, online privacy, DNS security"
+  }
+}

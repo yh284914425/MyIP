@@ -17,7 +17,7 @@ export const useMainStore = defineStore('main', {
     triggerUpdateAchievements: false,
     achievementToUpdate: '',
     userAchievements: {
-      'IAmHuman': { name: 'IAmHuman', achieved: false, img: 'achievements/iamhuman.webp', showDetails: false, achievedTime: null },
+      'IAmHuman': { name: 'IAmHuman', achieved: false, img: '/achievements/iamhuman.webp', showDetails: false, achievedTime: null },
       'BarelyEnough': { name: 'BarelyEnough', achieved: false, img: '/achievements/barelyenough.webp', showDetails: false, achievedTime: null },
       'RapidPace': { name: 'RapidPace', achieved: false, img: '/achievements/rapidpace.webp', showDetails: false, achievedTime: null },
       'TorrentFlow': { name: 'TorrentFlow', achieved: false, img: '/achievements/torrentflow.webp', showDetails: false, achievedTime: null },
@@ -215,8 +215,7 @@ export const useMainStore = defineStore('main', {
       try {
         const result = await signInWithPopup(auth, provider);
         this.user = result.user;
-        // 登录成功后刷新浏览器
-        window.location.reload();
+        this.isSignedIn = true;
       } catch (error) {
         this.alert = { alertToShow: true, alertStyle: "text-danger", alertMessage: t('alert.SignInFailedReason') + ' : ' + error, alertTitle: t('alert.SignInFailed') };
         console.error("Google sign-in failed:", error);
@@ -229,8 +228,7 @@ export const useMainStore = defineStore('main', {
       try {
         const result = await signInWithPopup(auth, provider);
         this.user = result.user;
-        // 登录成功后刷新浏览器
-        window.location.reload();
+        this.isSignedIn = true;
       } catch (error) {
         this.alert = { alertToShow: true, alertStyle: "text-danger", alertMessage: t('alert.SignInFailedReason') + ' : ' + error, alertTitle: t('alert.SignInFailed') };
         console.error("GitHub sign-in failed:", error);
@@ -249,12 +247,11 @@ export const useMainStore = defineStore('main', {
     // 初始化 Auth 监听
     initializeAuthListener() {
       return new Promise((resolve) => {
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        onAuthStateChanged(auth, (currentUser) => {
           this.user = currentUser;
           if (currentUser) {
             this.isSignedIn = true;
           }
-          unsubscribe(); // 获取到用户状态后立即取消订阅
           resolve();
         });
       });

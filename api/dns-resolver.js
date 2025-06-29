@@ -15,7 +15,7 @@ const dnsServers = {
     'AliDNS': '223.5.5.5',
     'DNSPod': '119.29.29.29',
     '114DNS': '114.114.114.114',
-    'China Unicom': '123.123.123.123',
+    'China Unicom': '210.22.84.3',
 };
 
 // DNS-over-HTTPS 服务列表
@@ -59,8 +59,6 @@ const resolveDns = async (hostname, type, name, server) => {
                 break;
             case 'MX':
                 addresses = await resolveMXAsync(hostname);
-                addresses = addresses.map(item => `${item.priority} ${item.exchange}.`)
-                .join(', ');
                 break;
             default:
                 throw new Error('Unsupported type');
@@ -83,7 +81,7 @@ const resolveDoh = async (hostname, type, name, url) => {
             headers: { 'Accept': 'application/dns-json' }
         });
         const data = await response.json();
-        const addresses = data.Answer ? data.Answer.map(answer => answer.data) : ['N/A'];
+        const addresses = data.Answer ? data.Answer.map(answer => answer.data) : [];
         if (addresses.length === 0 || addresses === '' || addresses === null) {
             return { [name]: `N/A` };
         }

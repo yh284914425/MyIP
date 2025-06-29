@@ -38,7 +38,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, nextTick } from 'vue';
 import { useMainStore } from '@/store';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
@@ -62,12 +62,12 @@ const goHome = () => {
 };
 
 const scrollToDNSTest = () => {
-  setTimeout(() => {
+  nextTick(() => {
     const element = document.getElementById('DNSLeakTest');
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-  }, 100);
+  });
 };
 </script>
 
