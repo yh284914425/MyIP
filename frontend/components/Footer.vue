@@ -1,226 +1,145 @@
 <template>
-  <footer>
-    <div id="copyleft">
-      <p class="text-center"><span>Created by Jason Ng with love</span> <a :href="t('page.footerLink')"
-          class="link-dark" target="_blank" @click="trackEvent('Footer', 'FooterClick', 'Github');"
-          aria-label="Github"><i class="bi bi-github" :class="{ 'dark-mode': isDarkMode }"
-            v-tooltip="{ title: t('Tooltips.GithubLink'), placement: 'top' }"></i></a>
-      </p>
-    </div>
-
-    <div id="about" class="text-center mb-2">
-      <a class="link link-underline-offset link-underline-opacity-0 jn-heart-color" role="button"
-        aria-controls="Sponsor" href="https://github.com/sponsors/jason5ng32" target="_blank">
-        {{ t('about.Sponsor') }} 💖
-      </a>&nbsp;&nbsp;
-      <a class="link link-underline-offset link-underline-opacity-0" :class="[isDarkMode ? 'link-light' : 'link-dark']"
-        role="button" aria-controls="About" @click.prevent="openAbout">
-        {{ t('about.Title') }} <i class="bi bi-arrow-left-circle-fill"></i>
-      </a>
-    </div>
-
-    <div class="offcanvas offcanvas-end mt-5 border-0 h-100" :class="[isMobile ? ' w-100' : '']" tabindex="-1"
-      id="About" aria-labelledby="AboutLabel" :data-bs-theme="isDarkMode ? 'dark' : 'light'">
-      <div class="offcanvas-header mt-3">
-        <div class="btn-group" role="group">
-          <template v-for="show in ['about', 'changelog', 'specialthanks']">
-            <input v-model="content" type="radio" class="btn-check" :name="'About_' + show" :id="'About_' + show"
-              autocomplete="off" :value=show @change="toggleContent(show)">
-            <label class="btn jn-number" :class="{
-              'btn-outline-dark': !isDarkMode,
-              'btn-outline-light': isDarkMode,
-              'active fw-bold': show === content
-            }" :for="'About_' + show">
-              {{ t(show + '.Title') }}
-            </label>
-          </template>
+  <footer class="mt-5 py-4 border-top">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <p class="mb-0 text-muted">
+            {{ t('footer.Copyright') }} | {{ t('footer.Built') }}
+          </p>
         </div>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-      </div>
-      <div class="offcanvas-body" ref="offcanvasBody">
-        <div v-if="showAbout">
-          <div class="mb-3">
-            <p v-for="i in 3" :key="i">
-              {{ t(`about.product${i}`) }}
-            </p>
-          </div>
-          <h5>{{ t('about.meTitle') }}</h5>
-          <div class="mb-3">
-            <p v-for="i in 3" :key="i">
-              {{ t(`about.me${i}`) }}
-            </p>
-          </div>
-          <div class="mb-3 mx-2">
-            <p>
-              <a href="https://wujiaxian.com" class="link-success link-underline-opacity-0" target="_blank"><i
-                  class="bi bi-browser-safari"></i> {{ t('about.personal') }}</a>
-            </p>
-            <p>
-              <a href="https://kenengba.com" class="link-success link-underline-opacity-0" target="_blank"><i
-                  class="bi bi-browser-safari"></i> {{ t('about.blog') }}</a>
-            </p>
-            <p>
-              <a href="https://retire.money" class="link-success link-underline-opacity-0" target="_blank"><i
-                  class="bi bi-browser-safari"></i> {{ t('about.retiremoney') }}</a>
-            </p>
-            <p>
-              <a href="https://twitter.com/jason5ng32" class="link-success link-underline-opacity-0" target="_blank"><i
-                  class="bi bi-browser-safari"></i> {{ t('about.twitter') }}</a>
-            </p>
-          </div>
-          <h5>{{ t('about.contactTitle') }}</h5>
-          <div v-html="t('about.contact')" class="mb-3">
-          </div>
-        </div>
-        <div v-if="showChangelog">
-          <div v-for="(version, index) in changelog.slice().reverse()" :key="index" class="mb-4">
-            <div class="row align-items-center">
-              <div class="col-6 fw-bold fs-5">{{ version.version }}</div>
-              <div class="col-6 row flex-row-reverse text-secondary">{{ version.date }}</div>
-            </div>
-            <hr>
-
-            <div v-for="(item, idx) in version.content" :key="idx" class="pb-1 ">
-              <span v-if="item.type === 'add'" class="badge  rounded-pill bg-success fw-normal ">{{ t('changelog.add')
-                }}</span>
-              <span v-else-if="item.type === 'improve'" class="badge rounded-pill bg-info fw-normal">{{
-                t('changelog.improve') }}</span>
-              <span v-else-if="item.type === 'fix'" class="badge  rounded-pill bg-danger fw-normal">{{
-                t('changelog.fix')
-                }}</span>
-              <span class="mx-2">{{ item.change }}</span>
-            </div>
-          </div>
-        </div>
-        <div v-if="showSpecialThanks">
-          <div class="mb-3">
-            <p>
-              {{ t('specialthanks.Note1') }}
-            </p>
-          </div>
-
-          <div v-for="(item, index) in thanksList" :key="index" class="mb-3 fst-italic">
-            <i class="bi bi-emoji-smile-fill "></i> {{ item.name }}
-            <a v-if="item.link" :class="[isDarkMode ? 'link-light' : 'link-dark']" :href="item.link" target="_blank">
-              <i class="bi bi-arrow-up-right-square"></i>
+        <div class="col-md-4 text-md-end">
+          <div class="footer-links">
+            <a href="#" class="text-muted text-decoration-none me-3" @click.prevent="openAbout">
+              {{ t('footer.About') }}
+            </a>
+            <a href="#" class="text-muted text-decoration-none me-3" @click.prevent="openPrivacy">
+              {{ t('footer.Privacy') }}
+            </a>
+            <a href="#" class="text-muted text-decoration-none" @click.prevent="openContact">
+              {{ t('footer.Contact') }}
             </a>
           </div>
-
         </div>
-
-        <div id="offcanvasPlaceholder mb-5" class="jn-placeholder mb-5">
-        </div>
-
       </div>
     </div>
 
-    <div id="copyright" v-if="!configs.originalSite">
-      <p class="text-center fs-6 fw-light" style="opacity: 0.5;">
-        {{ t('page.copyRightName') }} <a :href="t('page.copyRightLink')" class="link-underline-light" target="_blank"
-          :class="[isDarkMode ? 'link-light' : 'link-dark']">{{ t('page.copyRightLinkName') }}</a>
-      </p>
+    <!-- About Modal -->
+    <div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true"
+         :data-bs-theme="isDarkMode ? 'dark' : 'light'">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="aboutModalLabel">About SecureDNSCheck</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <h6>What is SecureDNSCheck?</h6>
+            <p>SecureDNSCheck is a free tool that helps you detect DNS leaks when using VPN services. DNS leaks can expose your real IP address and location, compromising your online privacy.</p>
+            
+            <h6>How does it work?</h6>
+            <p>We test your DNS queries against multiple servers and compare the results. If we detect that your DNS requests are going to different locations than your VPN tunnel, we'll alert you to the potential leak.</p>
+            
+            <h6>Why is this important?</h6>
+            <p>Even when using a VPN, your DNS queries might still be handled by your ISP's servers, revealing your browsing activity and real location. Our tool helps ensure your VPN is properly configured.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Privacy Modal -->
+    <div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true"
+         :data-bs-theme="isDarkMode ? 'dark' : 'light'">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="privacyModalLabel">Privacy Policy</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <h6>Data Collection</h6>
+            <p>We do not store any personal information or test results. All DNS leak tests are performed client-side in your browser.</p>
+            
+            <h6>Analytics</h6>
+            <p>We use Google Analytics to understand how users interact with our tool. This helps us improve the service. No personally identifiable information is collected.</p>
+            
+            <h6>Third-party Services</h6>
+            <p>Our DNS leak tests use external services (ip-api.com and surfsharkdns.com) to detect leaks. Please refer to their privacy policies for more information.</p>
+            
+            <h6>Cookies</h6>
+            <p>We use minimal cookies for analytics purposes only. No tracking cookies are used.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact Modal -->
+    <div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true"
+         :data-bs-theme="isDarkMode ? 'dark' : 'light'">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="contactModalLabel">Contact Us</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>Have questions or feedback about SecureDNSCheck?</p>
+            <p><strong>Email:</strong> contact@securednscheck.com</p>
+            <p><strong>Support:</strong> support@securednscheck.com</p>
+            <p>We typically respond within 24 hours.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
     </div>
   </footer>
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue';
+import { computed } from 'vue';
 import { useMainStore } from '@/store';
-import { Offcanvas } from 'bootstrap';
 import { useI18n } from 'vue-i18n';
-import { trackEvent } from '@/utils/use-analytics';
+import { Modal } from 'bootstrap';
 
-const { t, tm } = useI18n();
-
+const { t } = useI18n();
 const store = useMainStore();
 const isDarkMode = computed(() => store.isDarkMode);
-const isMobile = computed(() => store.isMobile);
-const configs = computed(() => store.configs);
-
-const content = ref('about');
-const showAbout = ref(true);
-const showChangelog = ref(false);
-const showSpecialThanks = ref(false);
-const changelog = reactive(tm('changelog.versions'));
-
-const thanksList = [
-  {
-    name: 'Setilis Hu',
-    link: ''
-  },
-  {
-    name: 'Seven Yu',
-    link: 'https://github.com/dofy'
-  },
-  {
-    name: 'Nikolai Tschacher',
-    link: 'https://incolumitas.com/pages/about/'
-  },
-  {
-    name: 'Project Alexandria (Cloudflare)',
-    link: 'https://www.cloudflare.com/lp/project-alexandria/'
-  },
-  {
-    name: 'Cloudflare Speedtest',
-    link: 'https://github.com/cloudflare/speedtest'
-  },
-  {
-    name: 'Globalping by jsDelivr',
-    link: 'https://globalping.io/'
-  },
-  {
-    name: 'ProxyCheck.io',
-    link: 'https://proxycheck.io/'
-  },
-  {
-    name: 'Digital Defense',
-    link: 'https://digital-defense.io/'
-  },
-  {
-    name: 'ChatGPT',
-    link: 'https://chatgpt.com/'
-  }
-]
 
 const openAbout = () => {
-  var offcanvasElement = document.getElementById('About');
-  var offcanvas = Offcanvas.getInstance(offcanvasElement) || new Offcanvas(offcanvasElement);
-  if (offcanvasElement.classList.contains('show')) {
-    offcanvas.hide();
-  } else {
-    offcanvas.show();
-  }
-
-  trackEvent('Footer', 'FooterClick', 'About');
-
+  const modal = new Modal(document.getElementById('aboutModal'));
+  modal.show();
 };
 
-const offcanvasBody = ref(null);
-
-const toggleContent = (contentType) => {
-  showAbout.value = contentType === 'about';
-  showChangelog.value = contentType === 'changelog';
-  showSpecialThanks.value = contentType === 'specialthanks';
-  content.value = contentType;
-  offcanvasBody.scrollTop = 0;
+const openPrivacy = () => {
+  const modal = new Modal(document.getElementById('privacyModal'));
+  modal.show();
 };
 
-defineExpose({
-  openAbout
-});
+const openContact = () => {
+  const modal = new Modal(document.getElementById('contactModal'));
+  modal.show();
+};
 </script>
 
 <style scoped>
-#About {
-  z-index: 1051;
+footer {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--border-color);
 }
 
-.jn-placeholder {
-  height: 20pt;
+[data-bs-theme="dark"] footer {
+  background: rgba(31, 41, 55, 0.8);
 }
 
-.jn-heart-color {
-  color: #d63384;
-  text-decoration: none;
+.footer-links a:hover {
+  color: var(--primary-blue) !important;
 }
 </style>
