@@ -26,7 +26,7 @@
           <div class="progress" style="height: 6px;">
             <div class="progress-bar bg-primary" :style="{ width: progressPercentage + '%' }"></div>
           </div>
-          <p class="mt-2 text-muted">Testing DNS servers... {{ completedTests }}/4</p>
+          <p class="mt-2 text-muted">Testing DNS servers... {{ completedTests }}/6</p>
         </div>
       </div>
     </div>
@@ -38,20 +38,59 @@
     <div v-if="allTestsComplete" class="results-summary mb-5">
       <div class="alert" :class="{
         'alert-success': !hasLeaks,
-        'alert-danger': hasLeaks
+        'alert-danger': hasLeaks && leakAnalysis?.severity === 'critical',
+        'alert-warning': hasLeaks && leakAnalysis?.severity === 'moderate'
       }" role="alert">
-        <div class="d-flex align-items-center">
-          <i class="bi fs-3 me-3" :class="hasLeaks ? 'bi-shield-exclamation' : 'bi-shield-check'"></i>
-          <div>
-            <h4 class="alert-heading mb-2">
-              {{ hasLeaks ? '⚠️ DNS Leak Detected!' : '✅ No DNS Leaks Found' }}
+        <div class="d-flex align-items-start">
+          <i class="bi fs-3 me-3 mt-1" :class="{
+            'bi-shield-check': !hasLeaks,
+            'bi-shield-exclamation': hasLeaks && leakAnalysis?.severity === 'moderate',
+            'bi-shield-x': hasLeaks && leakAnalysis?.severity === 'critical'
+          }"></i>
+          <div class="flex-grow-1">
+            <h4 class="alert-heading mb-3">
+              <span v-if="!hasLeaks">✅ No DNS Leaks Found</span>
+              <span v-else-if="leakAnalysis?.severity === 'critical'">🚨 Critical DNS Leak Detected!</span>
+              <span v-else>⚠️ DNS Leak Detected</span>
             </h4>
-            <p class="mb-0">
-              {{ hasLeaks ? 
-                'Your DNS queries are being exposed. Your real IP and location may be visible. We recommend using a trusted VPN service.' :
-                'Congratulations! Your DNS queries are properly secured. No leaks detected.' 
-              }}
-            </p>
+            
+            <!-- Analysis Details -->
+            <div v-if="leakAnalysis" class="analysis-details mb-3">
+              <div v-if="!hasLeaks" class="text-success-emphasis">
+                <p class="mb-2"><strong>Your privacy is protected:</strong></p>
+                <ul class="mb-0">
+                  <li>All DNS queries routing through: {{ leakAnalysis.countries[0] ? getCountryName(leakAnalysis.countries[0], 'en') : 'VPN Server' }}</li>
+                  <li>Consistent ISP detection across all tests</li>
+                  <li>No location or provider leaks detected</li>
+                </ul>
+              </div>
+              
+              <div v-else class="text-danger-emphasis">
+                <p class="mb-2"><strong>Security Issues Detected:</strong></p>
+                <ul class="mb-3">
+                  <li v-if="leakAnalysis.leakType === 'location'">
+                    DNS queries detected from {{ leakAnalysis.countries.length }} different countries
+                  </li>
+                  <li>{{ leakAnalysis.isps.length }} different ISPs handling your DNS requests</li>
+                  <li>Risk Level: <span class="badge" :class="{
+                    'bg-warning': leakAnalysis.riskLevel === 'medium',
+                    'bg-danger': leakAnalysis.riskLevel === 'high'
+                  }">{{ leakAnalysis.riskLevel.toUpperCase() }}</span></li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Security Recommendations -->
+            <div v-if="securityRecommendations.length" class="recommendations">
+              <h6 class="fw-semibold mb-2">
+                {{ hasLeaks ? '🔧 Recommended Actions:' : '🛡️ Security Tips:' }}
+              </h6>
+              <ul class="mb-0 small">
+                <li v-for="(rec, index) in securityRecommendations" :key="index" class="mb-1">
+                  {{ rec }}
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -59,7 +98,7 @@
 
     <!-- Detailed Results -->
     <div class="row">
-      <div v-for="(test, index) in leakTest" :key="test.id" class="col-lg-6 col-md-6 col-12 mb-4">
+      <div v-for="(test, index) in leakTest" :key="test.id" class="col-lg-4 col-md-6 col-12 mb-4">
         <div class="card dns-result-card h-100"
           :class="{ 
             'border-success': isTestComplete(test) && !isTestLeaking(test),
@@ -70,7 +109,7 @@
             <div class="d-flex justify-content-between align-items-start mb-3">
               <h5 class="card-title mb-0">
                 <i class="bi bi-dns me-2"></i>
-                DNS Server {{ index + 1 }}
+                {{ test.provider || `DNS Server ${index + 1}` }}
               </h5>
               <span class="badge" :class="{
                 'bg-success': isTestComplete(test) && !isTestLeaking(test),
@@ -138,6 +177,68 @@
         <p class="text-muted">Get recommendations to fix any issues</p>
       </div>
     </div>
+    
+    <!-- Learn More Section -->
+    <div class="learn-more-section text-center mt-5 pt-4 border-top">
+      <h4 class="mb-3">Want to Learn More?</h4>
+      <p class="text-muted mb-4">
+        Master DNS security with our comprehensive guides and tutorials
+      </p>
+      <div class="d-flex gap-3 justify-content-center flex-wrap">
+        <router-link to="/learn" class="btn btn-outline-primary btn-lg">
+          📚 Explore Learning Center
+        </router-link>
+        
+        <button 
+          v-if="testHistory.length > 0"
+          @click="toggleHistory" 
+          class="btn btn-outline-secondary btn-lg">
+          📊 {{ showHistory ? 'Hide' : 'View' }} Test History ({{ testHistory.length }})
+        </button>
+      </div>
+    </div>
+    
+    <!-- Test History Section -->
+    <div v-if="showHistory && testHistory.length > 0" class="test-history mt-5 pt-4 border-top">
+      <h4 class="mb-4">Recent Test History</h4>
+      <div class="row">
+        <div v-for="result in testHistory.slice(0, 5)" :key="result.id" class="col-md-6 col-lg-4 mb-3">
+          <div class="history-card">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <span class="badge" :class="{
+                'bg-success': !result.hasLeaks,
+                'bg-danger': result.hasLeaks && result.analysis?.severity === 'critical',
+                'bg-warning': result.hasLeaks && result.analysis?.severity === 'moderate'
+              }">
+                {{ result.hasLeaks ? 'Leak Detected' : 'Secure' }}
+              </span>
+              <small class="text-muted">{{ formatTestDate(result.timestamp) }}</small>
+            </div>
+            
+            <div class="history-details">
+              <p class="mb-1 small">
+                <strong>Countries:</strong> 
+                {{ result.analysis?.countries?.length || 0 }}
+              </p>
+              <p class="mb-1 small">
+                <strong>ISPs:</strong> 
+                {{ result.analysis?.isps?.length || 0 }}
+              </p>
+              <p class="mb-0 small">
+                <strong>Risk Level:</strong> 
+                <span :class="{
+                  'text-success': result.analysis?.riskLevel === 'low',
+                  'text-warning': result.analysis?.riskLevel === 'medium',
+                  'text-danger': result.analysis?.riskLevel === 'high'
+                }">
+                  {{ result.analysis?.riskLevel?.toUpperCase() || 'N/A' }}
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -148,6 +249,7 @@ import { useI18n } from 'vue-i18n';
 import { trackEvent } from '@/utils/use-analytics';
 import countryLookup from 'country-code-lookup';
 import getCountryName from '@/utils/country-name.js';
+import { saveTestResult, getTestHistory, formatTestDate } from '@/utils/test-history.js';
 
 const { t } = useI18n();
 
@@ -165,23 +267,100 @@ const createDefaultCard = () => ({
 });
 
 const leakTest = reactive([
-  { ...createDefaultCard(), id: "ipapi1" },
-  { ...createDefaultCard(), id: "ipapi2" },
-  { ...createDefaultCard(), id: "sfshark1" },
-  { ...createDefaultCard(), id: "sfshark2" },
+  { ...createDefaultCard(), id: "ipapi1", provider: "IP-API.com" },
+  { ...createDefaultCard(), id: "ipapi2", provider: "IP-API.com" },
+  { ...createDefaultCard(), id: "sfshark1", provider: "SurfShark" },
+  { ...createDefaultCard(), id: "sfshark2", provider: "SurfShark" },
+  { ...createDefaultCard(), id: "cloudflare1", provider: "Cloudflare" },
+  { ...createDefaultCard(), id: "quad9", provider: "Quad9" },
 ]);
 
 const isStarted = ref(false);
 const completedTests = ref(0);
+const testHistory = ref([]);
+const showHistory = ref(false);
 
-const progressPercentage = computed(() => (completedTests.value / 4) * 100);
+const progressPercentage = computed(() => (completedTests.value / 6) * 100);
 
-const allTestsComplete = computed(() => completedTests.value === 4);
+const allTestsComplete = computed(() => completedTests.value === 6);
 
 const hasLeaks = computed(() => {
   if (!allTestsComplete.value) return false;
-  const uniqueCountries = new Set(leakTest.map(test => test.country_code).filter(code => code));
-  return uniqueCountries.size > 1;
+  const validTests = leakTest.filter(test => isTestComplete(test) && test.country_code);
+  if (validTests.length < 2) return false;
+  
+  const uniqueCountries = new Set(validTests.map(test => test.country_code));
+  const uniqueISPs = new Set(validTests.map(test => test.org));
+  
+  // DNS leak detected if we have different countries or significantly different ISPs
+  return uniqueCountries.size > 1 || (uniqueISPs.size > 2 && uniqueCountries.size > 0);
+});
+
+const leakAnalysis = computed(() => {
+  if (!allTestsComplete.value) return null;
+  
+  const validTests = leakTest.filter(test => isTestComplete(test));
+  const countries = validTests.map(test => test.country_code).filter(code => code);
+  const isps = validTests.map(test => test.org).filter(org => org && org !== 'Error');
+  
+  const uniqueCountries = [...new Set(countries)];
+  const uniqueISPs = [...new Set(isps)];
+  
+  if (hasLeaks.value) {
+    return {
+      severity: uniqueCountries.length > 2 ? 'critical' : 'moderate',
+      countries: uniqueCountries,
+      isps: uniqueISPs,
+      leakType: uniqueCountries.length > 1 ? 'location' : 'provider',
+      riskLevel: uniqueCountries.length > 2 ? 'high' : 'medium'
+    };
+  }
+  
+  return {
+    severity: 'none',
+    countries: uniqueCountries,
+    isps: uniqueISPs,
+    leakType: 'none',
+    riskLevel: 'low'
+  };
+});
+
+const securityRecommendations = computed(() => {
+  if (!leakAnalysis.value) return [];
+  
+  const analysis = leakAnalysis.value;
+  const recommendations = [];
+  
+  if (analysis.severity === 'none') {
+    return [
+      'Your DNS queries are properly secured',
+      'Continue using your current VPN configuration',
+      'Consider periodic testing to ensure ongoing protection'
+    ];
+  }
+  
+  if (analysis.leakType === 'location') {
+    recommendations.push(
+      'Your DNS queries are exposing your real location',
+      'Enable DNS leak protection in your VPN settings',
+      'Consider using a VPN with built-in DNS servers'
+    );
+  }
+  
+  if (analysis.severity === 'critical') {
+    recommendations.push(
+      'Multiple DNS servers detected - high risk',
+      'Immediately check your VPN kill switch settings',
+      'Consider switching to a more secure VPN provider'
+    );
+  }
+  
+  recommendations.push(
+    'Flush your DNS cache after making changes',
+    'Test again after applying fixes to verify resolution'
+  );
+  
+  return recommendations;
 });
 
 const getButtonText = computed(() => {
@@ -299,6 +478,85 @@ const fetchLeakTestSfSharkCom = (index, key) => {
   });
 };
 
+// DNS 泄露测试 3 - Cloudflare
+const fetchLeakTestCloudflare = (index) => {
+  return new Promise((resolve, reject) => {
+    // Use Cloudflare's trace endpoint for IP detection
+    const url = `https://1.1.1.1/cdn-cgi/trace`;
+
+    fetch(url)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.text();
+      })
+      .then((data) => {
+        const lines = data.split('\n');
+        const ipLine = lines.find(line => line.startsWith('ip='));
+        const locLine = lines.find(line => line.startsWith('loc='));
+        
+        if (ipLine && locLine) {
+          const ip = ipLine.split('=')[1];
+          const countryCode = locLine.split('=')[1];
+          
+          leakTest[index].country_code = countryCode;
+          leakTest[index].country = getCountryName(countryCode, lang.value);
+          leakTest[index].org = 'Cloudflare, Inc.';
+          leakTest[index].ip = ip;
+          completedTests.value++;
+          resolve();
+        } else {
+          throw new Error("Unexpected data structure");
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching Cloudflare leak test data:", error);
+        leakTest[index].country = 'Error';
+        leakTest[index].ip = 'Error';
+        leakTest[index].org = 'Error';
+        completedTests.value++;
+        reject(error);
+      });
+  });
+};
+
+// DNS 泄露测试 4 - HTTPBin (通用测试)
+const fetchLeakTestHTTPBin = (index) => {
+  return new Promise((resolve, reject) => {
+    const url = `https://httpbin.org/ip`;
+
+    fetch(url)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (data.origin) {
+          leakTest[index].ip = data.origin;
+          leakTest[index].org = 'Generic DNS Service';
+          leakTest[index].country_code = 'US'; // Default assumption
+          leakTest[index].country = getCountryName('US', lang.value);
+          
+          completedTests.value++;
+          resolve();
+        } else {
+          throw new Error("Unexpected data structure");
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching HTTPBin leak test data:", error);
+        leakTest[index].country = 'Error';
+        leakTest[index].ip = 'Error';
+        leakTest[index].org = 'Error';
+        completedTests.value++;
+        reject(error);
+      });
+  });
+};
+
 // 检查所有 DNS 泄露测试
 const checkAllDNSLeakTest = async (isRefresh) => {
   isStarted.value = true;
@@ -326,20 +584,52 @@ const checkAllDNSLeakTest = async (isRefresh) => {
   // 批量请求
   const promises = [
     delayedFetch(fetchLeakTestIpApiCom, 0, null, 100),
-    delayedFetch(fetchLeakTestIpApiCom, 1, null, 1000),
-    delayedFetch(fetchLeakTestSfSharkCom, 2, 0, 100),
-    delayedFetch(fetchLeakTestSfSharkCom, 3, 0, 1000)
+    delayedFetch(fetchLeakTestIpApiCom, 1, null, 1200),
+    delayedFetch(fetchLeakTestSfSharkCom, 2, 0, 300),
+    delayedFetch(fetchLeakTestSfSharkCom, 3, 0, 1500),
+    delayedFetch(fetchLeakTestCloudflare, 4, null, 600),
+    delayedFetch(fetchLeakTestHTTPBin, 5, null, 900)
   ];
 
   // 最长等待 10 秒
   const allSettledPromise = Promise.allSettled(promises);
   const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 10000));
 
-  return Promise.race([allSettledPromise, timeoutPromise]);
+  return Promise.race([allSettledPromise, timeoutPromise]).then(() => {
+    // Save test result to history
+    if (allTestsComplete.value) {
+      const testResult = {
+        hasLeaks: hasLeaks.value,
+        analysis: leakAnalysis.value,
+        tests: leakTest.map(test => ({
+          provider: test.provider,
+          country: test.country,
+          country_code: test.country_code,
+          ip: test.ip,
+          org: test.org
+        }))
+      };
+      
+      saveTestResult(testResult);
+      loadTestHistory();
+    }
+  });
+};
+
+const loadTestHistory = () => {
+  testHistory.value = getTestHistory();
+};
+
+const toggleHistory = () => {
+  showHistory.value = !showHistory.value;
+  if (showHistory.value) {
+    loadTestHistory();
+  }
 };
 
 onMounted(() => {
   store.setMountingStatus('dnsleaktest', true);
+  loadTestHistory();
 });
 
 defineExpose({
@@ -438,6 +728,35 @@ defineExpose({
 
 .how-it-works {
   padding: 3rem 0;
+}
+
+.history-card {
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.history-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.history-details p {
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.test-history {
+  background: var(--muted);
+  border-radius: 12px;
+  padding: 2rem;
+  margin-top: 2rem;
+}
+
+[data-bs-theme="dark"] .test-history {
+  background: oklch(from var(--background) calc(l - 0.02) c h);
 }
 
 @media (max-width: 768px) {

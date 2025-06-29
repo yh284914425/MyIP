@@ -12,8 +12,22 @@
         </a>
       </div>
 
-      <div class="d-flex align-items-center">
+      <div class="d-flex align-items-center gap-3">
+        <router-link 
+          to="/learn" 
+          class="nav-link"
+          :class="{ 'active': $route.path === '/learn' }">
+          📚 Learn
+        </router-link>
+        
+        <button class="btn btn-sm btn-primary" 
+                v-if="$route.path !== '/'"
+                @click="goHome">
+          🛡️ Test Now
+        </button>
+        
         <button class="btn btn-sm" 
+                v-else
                 :class="isDarkMode ? 'btn-outline-light' : 'btn-outline-dark'"
                 @click="scrollToDNSTest">
           {{ t('nav.DNSLeakTest') }}
@@ -27,20 +41,57 @@
 import { computed } from 'vue';
 import { useMainStore } from '@/store';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 import brandIcon from './svgicons/Brand.vue';
 
 const { t } = useI18n();
 const store = useMainStore();
+const router = useRouter();
 const isDarkMode = computed(() => store.isDarkMode);
 
 const handleLogoClick = () => {
-  scrollToDNSTest();
+  if (router.currentRoute.value.path === '/') {
+    scrollToDNSTest();
+  } else {
+    router.push('/');
+  }
+};
+
+const goHome = () => {
+  router.push('/');
 };
 
 const scrollToDNSTest = () => {
-  const element = document.getElementById('DNSLeakTest');
-  if (element) {
-    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
+  setTimeout(() => {
+    const element = document.getElementById('DNSLeakTest');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, 100);
 };
 </script>
+
+<style scoped>
+.nav-link {
+  color: var(--muted-foreground);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease-in-out;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+}
+
+.nav-link:hover {
+  color: var(--foreground);
+  background: var(--muted);
+}
+
+.nav-link.active {
+  color: var(--primary);
+  background: oklch(from var(--primary) calc(l + 0.4) calc(c * 0.3) h);
+}
+
+[data-bs-theme="dark"] .nav-link.active {
+  background: oklch(from var(--primary) calc(l * 0.3) calc(c * 0.5) h);
+}
+</style>
