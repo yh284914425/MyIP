@@ -1,11 +1,37 @@
-# docker-compose up -d
-version: '3'
+version: '3.8'
+
 services:
-    myip:
-        container_name: myip
-        image: jason5ng32/myip:latest # my-app: x.x.x
-        stdin_open: true # docker run -i 交互模式
-        tty: true        # docker run -t 终端模式
-        restart: always # 重启策略 / on-failure:5 重启次数5次 / always 一直重启 / unless-stopped 除非停止 / no 从不重启
-        ports:
-            - "18966:18966"
+  dns-leak-app:
+    build: .
+    restart: always
+    ports:
+      - "3000:3000"
+      - "53:53/udp"
+    cap_add:
+      - "NET_BIND_SERVICE"
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DOMAIN_NAME=${DOMAIN_NAME:-checkdnsleak.com}
+      - VPS_IPV4=${VPS_IPV4:-23.95.215.125}
+      - VPS_IPV6=${VPS_IPV6}
+    networks:
+      - dns-leak-net
+    depends_on:
+      - redis
+
+  redis:
+    image: "redis:alpine"
+    restart: always
+    volumes:
+      - redis-data:/data
+    networks:
+      - dns-leak-net
+
+networks:
+  dns-leak-net:
+    driver: bridge
+
+volumes:
+  redis-data:

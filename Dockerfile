@@ -1,23 +1,25 @@
 # 第一阶段：构建
-FROM node:20-alpine as build-stage
+FROM node:18-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
 RUN npm run build
 
-# 第二阶段：运行
-FROM node:20-alpine as production-stage
+# 第二阶段：生产
+FROM node:18-alpine
 WORKDIR /app
-COPY --from=build-stage /app/node_modules ./node_modules
-COPY --from=build-stage /app/package.json ./
-COPY --from=build-stage /app/dist ./dist
-COPY --from=build-stage /app/backend-server.js ./
-COPY --from=build-stage /app/frontend-server.js ./
-COPY --from=build-stage /app/api ./api
-COPY --from=build-stage /app/common ./common
 
-EXPOSE 18966
+# 复制构建结果和必要文件
+COPY --from=builder /app/.output ./.output
+COPY --from=builder /app/node_modules ./node_modules
+COPY package*.json ./
+COPY dns-server.js ./
+COPY start-all.js ./
 
-# 启动应用
-CMD ["npm", "start"]
+# 暴露端口
+EXPOSE 3000
+EXPOSE 53/udp
+
+# 启动命令
+CMD ["node", "start-all.js"]

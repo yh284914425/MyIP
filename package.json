@@ -7,7 +7,9 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "start": "node start-all.js",
+    "start:dns": "node dns-server.js"
   },
   "dependencies": {
     "@pinia/nuxt": "^0.11.1",
@@ -15,6 +17,12 @@
     "country-code-lookup": "^0.1.3",
     "nuxt": "^3.17.5",
     "vue": "^3.5.17",
-    "vue-i18n": "^11.1.7"
+    "vue-i18n": "^11.1.7",
+    "ioredis": "^5.4.1",
+    "uuid": "^10.0.0",
+    "dns2": "^2.0.3"
+  },
+  "devDependencies": {
+    "@types/uuid": "^10.0.0"
   }
 }
